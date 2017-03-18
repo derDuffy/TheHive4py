@@ -63,7 +63,7 @@ class TheHiveApi():
             return self.session.get(req, proxies=self.proxies, auth=self.auth)
         except requests.exceptions.RequestException as e:
             sys.exit("Error: {}".format(e))
-            
+
     def get_case_observables(self, id):
         req = self.url + "/api/case/artifact/_search"
         data = {
@@ -109,7 +109,54 @@ class TheHiveApi():
                 sys.exit("Error: {}".format("Unable to find case templates"))
         except requests.exceptions.RequestException as e:
             sys.exit("Error: {}".format(e))
-            
+
+    # Returns a list of all cases
+    def get_cases(self):
+        req = self.url + "/api/case"
+        try:
+            r = self.session.get(req, proxies=self.proxies, auth=self.auth)
+            return r.json()
+        except requests.exceptions.RequestException as e:
+            sys.exit("Error: {}".format(e))
+
+    # returns a list of cases filtered by the tag provided
+    def get_case_by_tag(self, tag):
+        req = self.url + "/api/case/_search"
+        data = {
+            "query": {
+                "tags": tag
+            }
+        }
+
+        try:
+            return self.session.post(req, json=data, proxies=self.proxies, auth=self.auth)
+        except requests.exceptions.RequestException as e:
+            sys.exit("Error: {}".format(e))
+
+
+    # Returns a dictionary with varios statistics
+    def get_stats(self):
+        stats = {}
+        req = self.url + "/api/case"
+        try:
+            r = self.session.get(req, proxies=self.proxies, auth=self.auth)
+        except requests.exceptions.RequestException as e:
+            sys.exit("Error: {}".format(e))
+
+        cases = r.json()
+
+        stats["Total number of cases"] = len(cases)
+        #stats["top10 Tags"]
+        #stats["Cases by Status"]
+        #stats["Cases by Severity"]
+        #stats["Cases by Resolution"]
+        #stats["Cases by TLP"]
+        #stats["Cases by Asignee"]
+        #stats["Cases by Creater"]
+        #stats["Cases by impact"]
+
+        return stats
+
 
 # - createCase()
 # - createTask()
