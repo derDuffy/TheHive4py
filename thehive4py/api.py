@@ -119,33 +119,61 @@ class TheHiveApi():
         except requests.exceptions.RequestException as e:
             sys.exit("Error: {}".format(e))
 
-    # returns a list of cases filtered by the tag provided
-    def get_case_by_tag(self, tag):
+    #Acts as a generic search interface for cases
+    #supports ES DSL ?
+    #needs theHive API documentation
+    def get_search_result(self, searchdata):
         req = self.url + "/api/case/_search"
-        data = {
-            "query": {
-                "tags": tag
-            }
-        }
-
+        data = searchdata
         try:
-            return self.session.post(req, json=data, proxies=self.proxies, auth=self.auth)
+            return self.session.post(req, json=data, proxies=self.proxies, auth=self.auth).json()
         except requests.exceptions.RequestException as e:
             sys.exit("Error: {}".format(e))
+
+    def get_search_result(self, searchdata):
+        req = self.url + "/api/_search"
+        data = searchdata
+        try:
+            return self.session.post(req, json=data, proxies=self.proxies, auth=self.auth).json()
+        except requests.exceptions.RequestException as e:
+            sys.exit("Error: {}".format(e))
+
+    #Queries ES using query string Queries
+    #returns a list of results
+    def get_search_query_string(self, searchstring):
+        searchdata = {
+                "query": {
+            		"_string": searchstring
+                }
+            }
+        return self.get_search_result(searchdata)
+
+    #returns a list of cases filtered by tag
+    def get_case_by_tag(self, tag):
+        searchdata = {
+                "query": {
+                    "tags": tag
+                }
+            }
+        return self.get_search_result(searchdata)
 
 
     # Returns a dictionary with varios statistics
     def get_stats(self):
         stats = {}
-        req = self.url + "/api/case"
-        try:
-            r = self.session.get(req, proxies=self.proxies, auth=self.auth)
-        except requests.exceptions.RequestException as e:
-            sys.exit("Error: {}".format(e))
-
-        cases = r.json()
-
+        cases = self.get_cases()
         stats["Total number of cases"] = len(cases)
+
+        stati = ["Open","Closed","Deleted"]
+        for status in stati:
+            searchdata = {
+                    "query": {
+                        "status": status
+                    }
+                }
+            stats["Cases with status " + status] = len(self.get_search_result(searchdata))
+
+
         #stats["top10 Tags"]
         #stats["Cases by Status"]
         #stats["Cases by Severity"]
