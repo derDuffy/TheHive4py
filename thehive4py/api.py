@@ -130,13 +130,6 @@ class TheHiveApi():
         except requests.exceptions.RequestException as e:
             sys.exit("Error: {}".format(e))
 
-    def get_search_result(self, searchdata):
-        req = self.url + "/api/_search"
-        data = searchdata
-        try:
-            return self.session.post(req, json=data, proxies=self.proxies, auth=self.auth).json()
-        except requests.exceptions.RequestException as e:
-            sys.exit("Error: {}".format(e))
 
     #Queries ES using query string Queries
     #returns a list of results
